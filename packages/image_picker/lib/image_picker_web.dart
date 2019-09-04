@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:typed_data';
 
-import 'image_picker.dart'; // For types only
+import 'image_picker.dart'; // For types, and the fs FileSystem object
 
 final String _kImagePickerInputsDomId = '__image_picker_web-file-input';
 final String _kAcceptImageMimeType = 'image/*';
@@ -18,7 +18,6 @@ final String _kAcceptVideoMimeType = 'video/*';
 class ImagePickerPlugin {
 
   static html.Element target;
-  static FileSystem fs;
   static Directory tmpDir;
 
   static void registerWith(Registrar registrar) {
@@ -39,7 +38,6 @@ class ImagePickerPlugin {
       target = targetElement;
     }
 
-    fs = MemoryFileSystem(); // Other implementations may use the LocalFileSystem
     tmpDir = fs.systemTempDirectory;
   }
 
@@ -103,12 +101,14 @@ class ImagePickerPlugin {
       case 'pickImage':
         html.FileUploadInputElement input = _createInputElement(_kAcceptImageMimeType, call.arguments);
         _injectAndActivate(input);
-        return _getSelectedFile(input);
+        File file = await _getSelectedFile(input);
+        return file.path;
         break;
       case 'pickVideo':
         html.FileUploadInputElement input = _createInputElement(_kAcceptVideoMimeType, call.arguments);
         _injectAndActivate(input);
-        return _getSelectedFile(input);
+        File file = await _getSelectedFile(input);
+        return file.path;
         break;
       default:
         throw PlatformException(
