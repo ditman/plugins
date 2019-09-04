@@ -3,7 +3,10 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
+
+import 'package:file/file.dart';
+import 'package:file/memory.dart';
+import 'package:file/local.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -19,6 +22,8 @@ enum ImageSource {
   /// Opens the user's photo gallery.
   gallery,
 }
+
+final FileSystem fs = kIsWeb ? MemoryFileSystem() : LocalFileSystem();
 
 class ImagePicker {
   static const MethodChannel _channel =
@@ -66,7 +71,7 @@ class ImagePicker {
       },
     );
 
-    return path == null ? null : File(path);
+    return path == null ? null : fs.file(path);
   }
 
   /// Returns a [File] object pointing to the video that was picked.
@@ -86,7 +91,8 @@ class ImagePicker {
         'source': source.index,
       },
     );
-    return path == null ? null : File(path);
+
+    return path == null ? null : fs.file(path);
   }
 
   /// Retrieve the lost image file when [pickImage] or [pickVideo] failed because the  MainActivity is destroyed. (Android only)
@@ -129,7 +135,7 @@ class ImagePicker {
     final String path = result['path'];
 
     return LostDataResponse(
-        file: path == null ? null : File(path),
+        file: path == null ? null : fs.file(path),
         exception: exception,
         type: retrieveType);
   }
