@@ -9,12 +9,21 @@ version: 0.6.1+4
 
 flutter:
   plugin:
-    androidPackage: io.flutter.plugins.imagepicker
-    iosPrefix: FLT
-    pluginClass: ImagePickerPlugin
+    platforms:
+      android:
+        package: io.flutter.plugins.imagepicker
+        pluginClass: ImagePickerPlugin
+      ios:
+        pluginClass: ImagePickerPlugin
+      web:
+        pluginClass: ImagePickerPlugin
+        fileName: image_picker_web.dart
 
 dependencies:
+  file: ^5.0.10
   flutter:
+    sdk: flutter
+  flutter_web_plugins:
     sdk: flutter
 
 dev_dependencies:
