@@ -154,7 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Platform.isAndroid
+        child: /*Platform.isAndroid
             ? FutureBuilder<void>(
                 future: retrieveLostData(),
                 builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
@@ -182,7 +182,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   }
                 },
               )
-            : (isVideo ? _previewVideo() : _previewImage()),
+            :*/ (isVideo ? _previewVideo() : _previewImage()),
       ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
