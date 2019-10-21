@@ -5,6 +5,8 @@ dependencies:
   flutter:
     sdk: flutter
   google_sign_in:
+    path: ../../google_sign_in/
+  google_sign_in_web:
     path: ../
   http: ^0.12.0
 
