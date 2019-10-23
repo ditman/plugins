@@ -42,8 +42,8 @@ class GoogleSignInPlugin {
 
     html.window.console.debug(call);
 
-    final GoogleUser currentUser =
-        gapi.auth2.getAuthInstance()?.currentUser?.get();
+    final GoogleAuth authInstance = gapi.auth2.getAuthInstance();
+    final GoogleUser currentUser = authInstance?.currentUser?.get();
 
     switch (call.method) {
       case 'init': // void
@@ -58,15 +58,25 @@ class GoogleSignInPlugin {
         await _signIn(call.arguments);
         return _currentUserToPluginMap(currentUser);
         break;
-      case 'disconnect':
-        currentUser.disconnect();
-        return null;
       case 'getTokens':
         final Auth2AuthResponse response = currentUser.getAuthResponse();
         return <String, String>{
           'idToken': response.id_token,
           'accessToken': response.access_token,
         };
+        break;
+      case 'signOut':
+        await _signOut(call.arguments);
+        return null;
+        break;
+      case 'disconnect':
+        return currentUser.disconnect();
+        break;
+      case 'isSignedIn':
+        return currentUser.isSignedIn();
+        break;
+      case 'clearAuthCache':
+        return authInstance.disconnect();
         break;
       default:
         throw PlatformException(
@@ -106,6 +116,10 @@ class GoogleSignInPlugin {
         gapi.auth2.getAuthInstance().signIn(Auth2SignInOptions(
               prompt: 'none',
             )));
+  }
+
+  Future<void> _signOut(dynamic arguments) async {
+    return html.promiseToFuture<void>(gapi.auth2.getAuthInstance().signOut());
   }
 
   Future<void> _initGapi(dynamic _) {
