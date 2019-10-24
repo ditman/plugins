@@ -51,11 +51,15 @@ class GoogleSignInPlugin {
             .toString(); // Anything serializable, really!
         break;
       case 'signInSilently':
-        await _silentSignIn(currentUser, call.arguments);
+        // collect sign in parameters from call.arguments and prepare an Auth2SignInOptions object
+        await _signIn(Auth2SignInOptions(
+              prompt: 'none',
+            ));
         return _currentUserToPluginMap(currentUser);
         break;
       case 'signIn':
-        await _signIn(call.arguments);
+        // collect sign in parameters from call.arguments and prepare an Auth2SignInOptions object
+        await _signIn(null);
         return _currentUserToPluginMap(currentUser);
         break;
       case 'getTokens':
@@ -66,17 +70,20 @@ class GoogleSignInPlugin {
         };
         break;
       case 'signOut':
-        await _signOut(call.arguments);
+        await _signOut();
         return null;
         break;
       case 'disconnect':
-        return currentUser.disconnect();
+        currentUser.disconnect();
+        return null;
         break;
       case 'isSignedIn':
         return currentUser.isSignedIn();
         break;
       case 'clearAuthCache':
-        return authInstance.disconnect();
+        // We really don't keep any cache here, but let's try to be drastic:
+        authInstance.disconnect();
+        return null;
         break;
       default:
         throw PlatformException(
@@ -100,25 +107,17 @@ class GoogleSignInPlugin {
 
   // Load the auth2 library
   GoogleAuth _init(dynamic arguments) => gapi.auth2.init(Auth2ClientConfig(
-        hostedDomain: arguments['hostedDomain'],
+        hosted_domain: arguments['hostedDomain'],
         scope: arguments['scopes'].join(
             ' '), // The backend wants a space-separated list of values, not an array
-        clientId: arguments['clientId'] ?? _autoDetectedClientId,
+        client_id: arguments['clientId'] ?? _autoDetectedClientId,
       ));
 
-  Future<dynamic> _signIn(dynamic arguments) async {
-    return html.promiseToFuture<dynamic>(gapi.auth2.getAuthInstance().signIn());
+  Future<dynamic> _signIn(Auth2SignInOptions signInOptions) async {
+    return html.promiseToFuture<dynamic>(gapi.auth2.getAuthInstance().signIn(signInOptions));
   }
 
-  Future<dynamic> _silentSignIn(
-      GoogleUser currentUser, dynamic arguments) async {
-    return html.promiseToFuture<dynamic>(
-        gapi.auth2.getAuthInstance().signIn(Auth2SignInOptions(
-              prompt: 'none',
-            )));
-  }
-
-  Future<void> _signOut(dynamic arguments) async {
+  Future<void> _signOut() async {
     return html.promiseToFuture<void>(gapi.auth2.getAuthInstance().signOut());
   }
 
