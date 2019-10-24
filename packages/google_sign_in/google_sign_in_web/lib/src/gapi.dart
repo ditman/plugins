@@ -106,16 +106,14 @@ abstract class Auth2SignInOptions {
   external factory Auth2SignInOptions({
     String prompt,
     String scope,
-    String uxMode,
-    String redirectUri
+    String ux_mode,
+    String redirect_uri
   });
 
   external String get prompt;
   external String get scope;
-  @JS('ux_mode')
-  external String get uxMode;
-  @JS('redirect_uri')
-  external String get redirectUri;
+  external String get ux_mode;
+  external String get redirect_uri;
 }
 
 @JS()
@@ -123,39 +121,24 @@ abstract class Auth2SignInOptions {
 /// https://developers.google.com/identity/sign-in/web/reference#gapiauth2clientconfig
 abstract class Auth2ClientConfig {
   external factory Auth2ClientConfig({
-    String clientId,
-    String cookiePolicy,
+    String client_id,
+    String cookie_policy,
     String scope,
-    bool fetchBasicProfile,
-    String hostedDomain,
-    String openIdRealm,
-    String uxMode,
-    String redirectUri
+    bool fetch_basic_profile,
+    String hosted_domain,
+    String open_id_realm,
+    String ux_mode,
+    String redirect_uri,
   });
 
-  @JS('client_id')
-  external String get clientId;
-
-  @JS('cookie_policy')
-  external String get cookiePolicy;
-
-  @JS('scope')
+  external String get client_id;
+  external String get cookie_policy;
   external String get scope;
-
-  @JS('fetch_basic_profile')
-  external bool get fetchBasicProfile;
-
-  @JS('hosted_domain')
-  external String get hostedDomain;
-
-  @JS('openid_realm')
-  external String get openIdRealm;
-
-  @JS('ux_mode')
-  external String get uxMode;
-
-  @JS('redirect_uri')
-  external String get redirectUri;
+  external bool get fetch_basic_profile;
+  external String get hosted_domain;
+  external String get open_id_realm;
+  external String get ux_mode;
+  external String get redirect_uri;
 }
 
 @JS()
@@ -163,40 +146,24 @@ abstract class Auth2ClientConfig {
 /// https://developers.google.com/identity/sign-in/web/reference#gapiauth2authorizeconfig
 abstract class Auth2AuthorizeConfig {
   external factory Auth2AuthorizeConfig({
-    String clientId,
+    String client_id,
     String scope,
-    String responseType,
+    String response_type,
     String prompt,
-    String cookiePolicy,
-    String hostedDomain,
-    String loginHint,
-    String openIdRealm,
-    bool includeGrantedScopes,
+    String cookie_policy,
+    String hosted_domain,
+    String login_hint,
+    String open_id_realm,
+    bool include_granted_scopes,
   });
 
-  @JS('client_id')
-  external String get clientId;
-
-  @JS('scope')
+  external String get client_id;
   external String get scope;
-
-  @JS('response_type')
-  external String get responseType;
-
+  external String get response_type;
   external String get prompt;
-
-  @JS('cookie_policy')
-  external String get cookiePolicy;
-
-  @JS('hosted_domain')
-  external String get hostedDomain;
-
-  @JS('login_hint')
-  external String get loginHint;
-
-  @JS('openid_realm')
-  external String get openIdRealm;
-
-  @JS('include_granted_scopes')
-  external bool get includeGrantedScopes;
+  external String get cookie_policy;
+  external String get hosted_domain;
+  external String get login_hint;
+  external String get open_id_realm;
+  external bool get include_granted_scopes;
 }
