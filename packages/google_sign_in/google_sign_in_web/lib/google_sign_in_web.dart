@@ -3,8 +3,9 @@ import 'dart:html' as html;
 
 import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-import 'package:google_sign_in_web/src/gapi.dart';
 import 'package:js/js.dart';
+
+import 'src/gapi.dart';
 
 const String _kClientIdMetaSelector = 'meta[name=google-signin-client_id]';
 const String _kClientIdAttributeName = 'content';
@@ -19,8 +20,7 @@ class GoogleSignInPlugin {
         .querySelector(_kClientIdMetaSelector)
         ?.getAttribute(_kClientIdAttributeName);
 
-    _isGapiInitialized =
-        Future.wait(_injectJSLibraries(_kJsLibraries)).then(_initGapi);
+    _isGapiInitialized = _injectJSLibraries(_kJsLibraries).then((_) => _initGapi());
   }
 
   Future<void> _isGapiInitialized;
@@ -40,25 +40,23 @@ class GoogleSignInPlugin {
     // Await for initialization promises to complete, then do your thing...
     await _isGapiInitialized;
 
-    html.window.console.debug(call);
-
     final GoogleAuth authInstance = gapi.auth2.getAuthInstance();
     final GoogleUser currentUser = authInstance?.currentUser?.get();
 
     switch (call.method) {
-      case 'init': // void
-        return _init(call.arguments)
-            .toString(); // Anything serializable, really!
+      case 'init':
+        _init(call.arguments);
+        return true;
         break;
       case 'signInSilently':
-        // collect sign in parameters from call.arguments and prepare an Auth2SignInOptions object
+        // TODO: convert call.arguments to an Auth2SignInOptions object (when needed)
         await _signIn(Auth2SignInOptions(
-              prompt: 'none',
-            ));
+          prompt: 'none',
+        ));
         return _currentUserToPluginMap(currentUser);
         break;
       case 'signIn':
-        // collect sign in parameters from call.arguments and prepare an Auth2SignInOptions object
+        // TODO: convert call.arguments to an Auth2SignInOptions object (when needed)
         await _signIn(null);
         return _currentUserToPluginMap(currentUser);
         break;
@@ -108,34 +106,35 @@ class GoogleSignInPlugin {
   // Load the auth2 library
   GoogleAuth _init(dynamic arguments) => gapi.auth2.init(Auth2ClientConfig(
         hosted_domain: arguments['hostedDomain'],
-        scope: arguments['scopes'].join(
-            ' '), // The backend wants a space-separated list of values, not an array
+        // The js lib wants a space-separated list of values
+        scope: arguments['scopes'].join(' '),
         client_id: arguments['clientId'] ?? _autoDetectedClientId,
       ));
 
   Future<dynamic> _signIn(Auth2SignInOptions signInOptions) async {
-    return html.promiseToFuture<dynamic>(gapi.auth2.getAuthInstance().signIn(signInOptions));
+    return html.promiseToFuture<dynamic>(
+        gapi.auth2.getAuthInstance().signIn(signInOptions));
   }
 
   Future<void> _signOut() async {
     return html.promiseToFuture<void>(gapi.auth2.getAuthInstance().signOut());
   }
 
-  Future<void> _initGapi(dynamic _) {
-    // JS-interop with the global gapi method and call gapi.load('auth2'), and wait for the
-    // promise to resolve...
+  Future<void> _initGapi() {
+    // JS-interop with the global gapi method and call gapi.load('auth2'),
+    // then wait for the promise to resolve...
     final Completer<void> gapiLoadCompleter = Completer<void>();
     gapi.load('auth2', allowInterop(() {
       gapiLoadCompleter.complete();
     }));
 
-    return gapiLoadCompleter
-        .future; // After this is resolved, we can use gapi.auth2!
+    // After this is resolved, we can use gapi.auth2!
+    return gapiLoadCompleter.future;
   }
 
   /// Injects a bunch of libraries in the <head> and returns a
   /// Future that resolves when all load.
-  List<Future<void>> _injectJSLibraries(List<String> libraries,
+  Future<void> _injectJSLibraries(List<String> libraries,
       {Duration timeout}) {
     final List<Future<void>> loading = <Future<void>>[];
     final List<html.HtmlElement> tags = <html.HtmlElement>[];
@@ -145,11 +144,11 @@ class GoogleSignInPlugin {
         ..async = true
         ..defer = true
         ..src = library;
-      loading.add(
-          script.onLoad.first); // TODO add a timeout race to fail this future
+      // TODO add a timeout race to fail this future
+      loading.add(script.onLoad.first);
       tags.add(script);
     });
     html.querySelector('head').children.addAll(tags);
-    return loading;
+    return Future.wait(loading);
   }
 }

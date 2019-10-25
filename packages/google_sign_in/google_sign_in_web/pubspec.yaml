@@ -18,7 +18,7 @@ dependencies:
   flutter_web_plugins:
     sdk: flutter
   meta: ^1.1.7
-  js: any
+  js: ^0.6.1
 
 dev_dependencies:
   flutter_test:

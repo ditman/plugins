@@ -1,11 +1,11 @@
+/// This library describes the global gapi object, and the 'auth2' module
+/// as described here: https://developers.google.com/identity/sign-in/web/reference
 @JS()
-/// This library implements the global gapi object
-library gapi; // Poor man's package:googleapis
+library gapi;
 
 import 'dart:async';
 import 'dart:html' as html;
 
-import 'package:flutter/material.dart';
 import 'package:js/js.dart';
 
 // Global window.gapi, we need to call `load('auth2', cb)` on it...
@@ -20,14 +20,14 @@ abstract class Gapi {
 
 @JS()
 abstract class Auth2 {
+  // https://developers.google.com/identity/sign-in/web/reference#gapiauth2initparams
   external GoogleAuth init(Auth2ClientConfig params);
   external GoogleAuth getAuthInstance();
-  // todo
-  external void authorize(Auth2AuthorizeConfig params, Auth2AuthorizeCallback callback);
+  external void authorize(
+      Auth2AuthorizeConfig params, Auth2AuthorizeCallback callback);
 }
 
 typedef Auth2AuthorizeCallback = void Function(Auth2AuthorizeResponse response);
-
 
 @JS()
 abstract class Auth2CurrentUser {
@@ -38,7 +38,6 @@ abstract class Auth2CurrentUser {
 typedef Auth2CurrentUserListener = void Function(bool);
 
 @JS()
-// https://developers.google.com/identity/sign-in/web/reference#gapiauth2initparams
 abstract class GoogleAuth {
   external Future<void> then(Function onInit, Function onError);
   // Authentication: https://developers.google.com/identity/sign-in/web/reference#authentication
@@ -46,10 +45,12 @@ abstract class GoogleAuth {
   external Future<void> signOut();
   external void disconnect();
   // Offline access not implemented
-  external void attachClickHandler(html.HtmlElement container, Auth2SignInOptions options, Function onSuccess, Function onFailure);
+  external void attachClickHandler(html.HtmlElement container,
+      Auth2SignInOptions options, Function onSuccess, Function onFailure);
   external Auth2CurrentUser get currentUser;
 }
 
+// https://developers.google.com/identity/sign-in/web/reference#googleusergetbasicprofile
 @JS()
 abstract class Auth2BasicProfile {
   external String getId();
@@ -60,8 +61,8 @@ abstract class Auth2BasicProfile {
   external String getEmail();
 }
 
+// https://developers.google.com/identity/sign-in/web/reference#gapiauth2authresponse
 @JS()
-@anonymous
 abstract class Auth2AuthResponse {
   external String get access_token;
   external String get id_token;
@@ -71,6 +72,7 @@ abstract class Auth2AuthResponse {
   external num get expires_at;
 }
 
+// https://developers.google.com/identity/sign-in/web/reference#gapiauth2authorizeresponse
 @JS()
 abstract class Auth2AuthorizeResponse {
   external String get access_token;
@@ -84,6 +86,7 @@ abstract class Auth2AuthorizeResponse {
   external String get error_subtype;
 }
 
+// https://developers.google.com/identity/sign-in/web/reference#users
 @JS()
 abstract class GoogleUser {
   external String getId();
@@ -99,16 +102,12 @@ abstract class GoogleUser {
   external void disconnect();
 }
 
+// https://developers.google.com/identity/sign-in/web/reference#gapiauth2signinoptions
 @JS()
 @anonymous
-// https://developers.google.com/identity/sign-in/web/reference#gapiauth2signinoptions
 abstract class Auth2SignInOptions {
-  external factory Auth2SignInOptions({
-    String prompt,
-    String scope,
-    String ux_mode,
-    String redirect_uri
-  });
+  external factory Auth2SignInOptions(
+      {String prompt, String scope, String ux_mode, String redirect_uri});
 
   external String get prompt;
   external String get scope;
@@ -116,9 +115,9 @@ abstract class Auth2SignInOptions {
   external String get redirect_uri;
 }
 
+// https://developers.google.com/identity/sign-in/web/reference#gapiauth2clientconfig
 @JS()
 @anonymous
-/// https://developers.google.com/identity/sign-in/web/reference#gapiauth2clientconfig
 abstract class Auth2ClientConfig {
   external factory Auth2ClientConfig({
     String client_id,
@@ -141,9 +140,9 @@ abstract class Auth2ClientConfig {
   external String get redirect_uri;
 }
 
+// https://developers.google.com/identity/sign-in/web/reference#gapiauth2authorizeconfig
 @JS()
 @anonymous
-/// https://developers.google.com/identity/sign-in/web/reference#gapiauth2authorizeconfig
 abstract class Auth2AuthorizeConfig {
   external factory Auth2AuthorizeConfig({
     String client_id,
