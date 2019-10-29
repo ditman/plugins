@@ -11,9 +11,8 @@ import 'method_channel_google_sign_in.dart';
 enum SignInOption { standard, games }
 
 class GoogleSignInUserData {
-  GoogleSignInUserData({
-    this.displayName, this.email, this.id, this.photoUrl, this.idToken
-  });
+  GoogleSignInUserData(
+      {this.displayName, this.email, this.id, this.photoUrl, this.idToken});
   String displayName;
   String email;
   String id;
@@ -45,7 +44,11 @@ abstract class GoogleSignInPlatform {
   /// Defaults to [MethodChannelGoogleSignIn].
   static GoogleSignInPlatform instance = MethodChannelGoogleSignIn();
 
-  Future<void> init({@required String hostedDomain, List<String> scopes, SignInOption signInOption, String clientId}) async {
+  Future<void> init(
+      {@required String hostedDomain,
+      List<String> scopes,
+      SignInOption signInOption,
+      String clientId}) async {
     throw UnimplementedError('init() has not been implemented.');
   }
 
@@ -57,7 +60,8 @@ abstract class GoogleSignInPlatform {
     throw UnimplementedError('signIn() has not been implemented.');
   }
 
-  Future<GoogleSignInTokenData> getTokens({@required String email, bool shouldRecoverAuth}) async {
+  Future<GoogleSignInTokenData> getTokens(
+      {@required String email, bool shouldRecoverAuth}) async {
     throw UnimplementedError('getTokens() has not been implemented.');
   }
 

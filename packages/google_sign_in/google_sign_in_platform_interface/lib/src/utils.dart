@@ -5,15 +5,15 @@ GoogleSignInUserData nativeUserDataToPluginUserData(Map<String, dynamic> data) {
     return null;
   }
   return GoogleSignInUserData(
-    displayName: data['displayName'],
-    email: data['email'],
-    id: data['id'],
-    photoUrl: data['photoUrl'],
-    idToken: data['idToken'] 
-  );
+      displayName: data['displayName'],
+      email: data['email'],
+      id: data['id'],
+      photoUrl: data['photoUrl'],
+      idToken: data['idToken']);
 }
 
-GoogleSignInTokenData nativeTokenDataToPluginTokenData(Map<String, dynamic> data) {
+GoogleSignInTokenData nativeTokenDataToPluginTokenData(
+    Map<String, dynamic> data) {
   if (data == null) {
     return null;
   }
