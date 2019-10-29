@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:html' as html;
 
-import 'package:flutter/services.dart';
+import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:js/js.dart';
+import 'package:meta/meta.dart';
 
 import 'src/gapi.dart';
+import 'src/utils.dart';
 
 const String _kClientIdMetaSelector = 'meta[name=google-signin-client_id]';
 const String _kClientIdAttributeName = 'content';
@@ -14,141 +16,121 @@ const List<String> _kJsLibraries = <String>[
 ];
 
 /// Implementation of the google_sign_in plugin for Web
-class GoogleSignInPlugin {
+class GoogleSignInPlugin extends GoogleSignInPlatform {
   GoogleSignInPlugin() {
     _autoDetectedClientId = html
         .querySelector(_kClientIdMetaSelector)
         ?.getAttribute(_kClientIdAttributeName);
 
-    _isGapiInitialized = _injectJSLibraries(_kJsLibraries).then((_) => _initGapi());
+    _isGapiInitialized = injectJSLibraries(_kJsLibraries).then((_) => _initGapi());
   }
 
   Future<void> _isGapiInitialized;
   String _autoDetectedClientId;
 
   static void registerWith(Registrar registrar) {
-    final MethodChannel channel = MethodChannel(
-        'plugins.flutter.io/google_sign_in',
-        const StandardMethodCodec(),
-        registrar.messenger);
-
-    final GoogleSignInPlugin instance = GoogleSignInPlugin();
-    channel.setMethodCallHandler(instance.handleMethodCall);
+    GoogleSignInPlatform.instance = GoogleSignInPlugin();
   }
 
-  Future<dynamic> handleMethodCall(MethodCall call) async {
-    // Await for initialization promises to complete, then do your thing...
+  @override
+  Future<void> init({@required String hostedDomain, List<String> scopes = const <String>[], SignInOption signInOption = SignInOption.standard, String clientId}) async {
+    final String appClientId = clientId ?? _autoDetectedClientId;
+    assert(appClientId != null, 'ClientID not set. Either set it on a <meta name="google-signin-client_id" content="CLIENT_ID" /> tag, or pass clientId when calling init()');
+
+    await _isGapiInitialized;
+
+    gapi.auth2.init(Auth2ClientConfig(
+        hosted_domain: hostedDomain,
+        // The js lib wants a space-separated list of values
+        scope: scopes.join(' '),
+        client_id: appClientId,
+    ));
+
+    return null;
+  }
+
+  @override
+  Future<GoogleSignInUserData> signInSilently() async {
+    final GoogleUser currentUser = await _signIn(Auth2SignInOptions(
+      prompt: 'none',
+    ));
+
+    return gapiUserToPluginUserData(currentUser);
+  }
+
+  @override
+  Future<GoogleSignInUserData> signIn() async {
+    final GoogleUser currentUser = await _signIn(null);
+
+    return gapiUserToPluginUserData(currentUser);
+  }
+
+  @override
+  Future<GoogleSignInTokenData> getTokens({@required String email, bool shouldRecoverAuth}) async {
+    await _isGapiInitialized;
+
+    final GoogleAuth authInstance = gapi.auth2.getAuthInstance();
+    final GoogleUser currentUser = authInstance?.currentUser?.get();
+    final Auth2AuthResponse response = currentUser.getAuthResponse();
+
+    return GoogleSignInTokenData(idToken: response.id_token, accessToken: response.access_token);
+  }
+
+  @override
+  Future<void> signOut() async {
+    await _isGapiInitialized;
+
+    return html.promiseToFuture<void>(gapi.auth2.getAuthInstance().signOut());
+  }
+
+  @override
+  Future<void> disconnect() async {
     await _isGapiInitialized;
 
     final GoogleAuth authInstance = gapi.auth2.getAuthInstance();
     final GoogleUser currentUser = authInstance?.currentUser?.get();
 
-    switch (call.method) {
-      case 'init':
-        _init(call.arguments);
-        return true;
-        break;
-      case 'signInSilently':
-        // TODO: convert call.arguments to an Auth2SignInOptions object (when needed)
-        await _signIn(Auth2SignInOptions(
-          prompt: 'none',
-        ));
-        return _currentUserToPluginMap(currentUser);
-        break;
-      case 'signIn':
-        // TODO: convert call.arguments to an Auth2SignInOptions object (when needed)
-        await _signIn(null);
-        return _currentUserToPluginMap(currentUser);
-        break;
-      case 'getTokens':
-        final Auth2AuthResponse response = currentUser.getAuthResponse();
-        return <String, String>{
-          'idToken': response.id_token,
-          'accessToken': response.access_token,
-        };
-        break;
-      case 'signOut':
-        await _signOut();
-        return null;
-        break;
-      case 'disconnect':
-        currentUser.disconnect();
-        return null;
-        break;
-      case 'isSignedIn':
-        return currentUser.isSignedIn();
-        break;
-      case 'clearAuthCache':
-        // We really don't keep any cache here, but let's try to be drastic:
-        authInstance.disconnect();
-        return null;
-        break;
-      default:
-        throw PlatformException(
-            code: 'Unimplemented',
-            details: "The google_sign_in plugin for web doesn't implement "
-                "the method '${call.method}'");
-    }
+    return currentUser.disconnect();
   }
 
-  Map<String, dynamic> _currentUserToPluginMap(GoogleUser currentUser) {
-    assert(currentUser != null);
-    final Auth2BasicProfile profile = currentUser.getBasicProfile();
-    return <String, dynamic>{
-      'displayName': profile?.getName(),
-      'email': profile?.getEmail(),
-      'id': profile?.getId(),
-      'photoUrl': profile?.getImageUrl(),
-      'idToken': currentUser?.getAuthResponse()?.id_token,
-    };
+  @override
+  Future<bool> isSignedIn() async {
+    await _isGapiInitialized;
+
+    final GoogleAuth authInstance = gapi.auth2.getAuthInstance();
+    final GoogleUser currentUser = authInstance?.currentUser?.get();
+
+    return currentUser.isSignedIn();
   }
 
-  // Load the auth2 library
-  GoogleAuth _init(dynamic arguments) => gapi.auth2.init(Auth2ClientConfig(
-        hosted_domain: arguments['hostedDomain'],
-        // The js lib wants a space-separated list of values
-        scope: arguments['scopes'].join(' '),
-        client_id: arguments['clientId'] ?? _autoDetectedClientId,
-      ));
+  @override
+  Future<void> clearAuthCache({String token}) async {
+    await _isGapiInitialized;
 
-  Future<dynamic> _signIn(Auth2SignInOptions signInOptions) async {
-    return html.promiseToFuture<dynamic>(
+    final GoogleAuth authInstance = gapi.auth2.getAuthInstance();
+
+    return authInstance.disconnect();
+  }
+
+  // This is used both by signIn and signInSilently
+  Future<GoogleUser> _signIn(Auth2SignInOptions signInOptions) async {
+    await _isGapiInitialized;
+
+    return html.promiseToFuture<GoogleUser>(
         gapi.auth2.getAuthInstance().signIn(signInOptions));
+
+    // return gapi.auth2.getAuthInstance()?.currentUser?.get();
   }
 
-  Future<void> _signOut() async {
-    return html.promiseToFuture<void>(gapi.auth2.getAuthInstance().signOut());
-  }
-
+  /// Initialize the global gapi object so 'auth2' can be used.
+  /// Returns a promise that resolves when 'auth2' is ready.
   Future<void> _initGapi() {
-    // JS-interop with the global gapi method and call gapi.load('auth2'),
-    // then wait for the promise to resolve...
     final Completer<void> gapiLoadCompleter = Completer<void>();
     gapi.load('auth2', allowInterop(() {
       gapiLoadCompleter.complete();
     }));
 
-    // After this is resolved, we can use gapi.auth2!
+    // After this resolves, we can use gapi.auth2!
     return gapiLoadCompleter.future;
-  }
-
-  /// Injects a bunch of libraries in the <head> and returns a
-  /// Future that resolves when all load.
-  Future<void> _injectJSLibraries(List<String> libraries,
-      {Duration timeout}) {
-    final List<Future<void>> loading = <Future<void>>[];
-    final List<html.HtmlElement> tags = <html.HtmlElement>[];
-
-    libraries.forEach((String library) {
-      final html.ScriptElement script = html.ScriptElement()
-        ..async = true
-        ..defer = true
-        ..src = library;
-      // TODO add a timeout race to fail this future
-      loading.add(script.onLoad.first);
-      tags.add(script);
-    });
-    html.querySelector('head').children.addAll(tags);
-    return Future.wait(loading);
   }
 }

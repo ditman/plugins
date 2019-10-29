@@ -17,6 +17,8 @@ dependencies:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
+  google_sign_in_platform_interface: 
+    path: ../google_sign_in_platform_interface
   meta: ^1.1.7
   js: ^0.6.1
 

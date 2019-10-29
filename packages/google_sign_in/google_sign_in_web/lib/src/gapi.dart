@@ -88,6 +88,7 @@ abstract class Auth2AuthorizeResponse {
 
 // https://developers.google.com/identity/sign-in/web/reference#users
 @JS()
+@anonymous
 abstract class GoogleUser {
   external String getId();
   external bool isSignedIn();
