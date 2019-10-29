@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:meta/meta.dart' show required;
 
 import 'google_sign_in_platform_interface.dart';
+import 'src/utils.dart';
 
 const MethodChannel _channel = MethodChannel('plugins.flutter.io/google_sign_in');
 
@@ -23,23 +24,27 @@ class MethodChannelGoogleSignIn extends GoogleSignInPlatform {
   }
 
   @override
-  Future<Map<String, dynamic>> signInSilently() async {
-    return _channel.invokeMapMethod<String, dynamic>('signInSilently');
+  Future<GoogleSignInUserData> signInSilently() async {
+    return _channel.invokeMapMethod<String, dynamic>('signInSilently').then(
+      (Map<String, dynamic> data) => nativeUserDataToPluginUserData(data));
   }
 
   @override
-  Future<Map<String, dynamic>> signIn() async {
-    return _channel.invokeMapMethod<String, dynamic>('signIn');
+  Future<GoogleSignInUserData> signIn() async {
+    return _channel.invokeMapMethod<String, dynamic>('signIn').then(
+      (Map<String, dynamic> data) => nativeUserDataToPluginUserData(data));
   }
 
   @override
-  Future<Map<String, String>> getTokens({String email, bool shouldRecoverAuth = true}) async {
+  Future<GoogleSignInTokenData> getTokens({String email, bool shouldRecoverAuth = true}) async {
     return _channel.invokeMapMethod<String, dynamic>(
       'getTokens',
       <String, dynamic>{
         'email': email,
         'shouldRecoverAuth': shouldRecoverAuth,
-      });
+      }).then(
+        (Map<String, dynamic> data) => nativeTokenDataToPluginTokenData(data)
+      );
   }
 
   @override

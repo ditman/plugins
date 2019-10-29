@@ -10,6 +10,23 @@ import 'method_channel_google_sign_in.dart';
 
 enum SignInOption { standard, games }
 
+class GoogleSignInUserData {
+  GoogleSignInUserData({
+    this.displayName, this.email, this.id, this.photoUrl, this.idToken
+  });
+  String displayName;
+  String email;
+  String id;
+  String photoUrl;
+  String idToken;
+}
+
+class GoogleSignInTokenData {
+  GoogleSignInTokenData({this.idToken, this.accessToken});
+  String idToken;
+  String accessToken;
+}
+
 /// The interface that implementations of google_sign_in must implement.
 ///
 /// Platform implementations that live in a separate package should extend this
@@ -32,15 +49,15 @@ abstract class GoogleSignInPlatform {
     throw UnimplementedError('init() has not been implemented.');
   }
 
-  Future<Map<String, dynamic>> signInSilently() async {
+  Future<GoogleSignInUserData> signInSilently() async {
     throw UnimplementedError('signInSilently() has not been implemented.');
   }
 
-  Future<Map<String, dynamic>> signIn() async {
+  Future<GoogleSignInUserData> signIn() async {
     throw UnimplementedError('signIn() has not been implemented.');
   }
 
-  Future<Map<String, String>> getTokens() async {
+  Future<GoogleSignInTokenData> getTokens({@required String email, bool shouldRecoverAuth}) async {
     throw UnimplementedError('getTokens() has not been implemented.');
   }
 
@@ -56,7 +73,7 @@ abstract class GoogleSignInPlatform {
     throw UnimplementedError('isSignedIn() has not been implemented.');
   }
 
-  Future<void> clearAuthCache() async {
+  Future<void> clearAuthCache({@required String token}) async {
     throw UnimplementedError('clearAuthCache() has not been implemented.');
   }
 }
