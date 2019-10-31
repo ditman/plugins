@@ -1,3 +1,7 @@
+## 4.0.13
+
+* Port plugin code to use the federated Platform Interface, instead of a MethodChannel directly.
+
 ## 4.0.12
 
 * Move google_sign_in plugin to google_sign_in/google_sign_in to prepare for federated implementations.
