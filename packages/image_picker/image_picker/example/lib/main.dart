@@ -40,7 +40,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   PickedFile _imageFile;
   dynamic _pickImageError;
-  bool isVideo = false;
+  RetrieveType mediaSource = RetrieveType.video;
   VideoPlayerController _controller;
   String _retrieveDataError;
 
@@ -69,29 +69,32 @@ class _MyHomePageState extends State<MyHomePage> {
     if (_controller != null) {
       await _controller.setVolume(0.0);
     }
-    if (isVideo) {
-      final PickedFile file = await _picker.getVideo(
-          source: source, maxDuration: const Duration(seconds: 10));
-      await _playVideo(file);
-    } else {
-      await _displayPickImageDialog(context,
-          (double maxWidth, double maxHeight, int quality) async {
-        try {
-          final pickedFile = await _picker.getImage(
-            source: source,
-            maxWidth: maxWidth,
-            maxHeight: maxHeight,
-            imageQuality: quality,
-          );
-          setState(() {
-            _imageFile = pickedFile;
-          });
-        } catch (e) {
-          setState(() {
-            _pickImageError = e;
-          });
-        }
-      });
+    switch (mediaSource) {
+      case RetrieveType.image:
+        await _displayPickImageDialog(context,
+            (double maxWidth, double maxHeight, int quality) async {
+          try {
+            final pickedFile = await _picker.getImage(
+              source: source,
+              maxWidth: maxWidth,
+              maxHeight: maxHeight,
+              imageQuality: quality,
+            );
+            setState(() {
+              _imageFile = pickedFile;
+            });
+          } catch (e) {
+            setState(() {
+              _pickImageError = e;
+            });
+          }
+        });
+        break;
+      case RetrieveType.video:
+        final PickedFile file = await _picker.getVideo(
+            source: source, maxDuration: const Duration(seconds: 10));
+        await _playVideo(file);
+        break;
     }
   }
 
@@ -170,10 +173,10 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     if (response.file != null) {
       if (response.type == RetrieveType.video) {
-        isVideo = true;
+        mediaSource = RetrieveType.video;
         await _playVideo(response.file);
       } else {
-        isVideo = false;
+        mediaSource = RetrieveType.image;
         setState(() {
           _imageFile = response.file;
         });
@@ -188,6 +191,15 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        actions: [
+          IconButton(
+            onPressed: () {
+              _onImageButtonPressed(ImageSource.gallery, context: context);
+            },
+            tooltip: 'Pick Media',
+            icon: const Icon(Icons.add),
+          ),
+        ],
       ),
       body: Center(
         child: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
@@ -202,7 +214,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         textAlign: TextAlign.center,
                       );
                     case ConnectionState.done:
-                      return isVideo ? _previewVideo() : _previewImage();
+                      return mediaSource == RetrieveType.video
+                          ? _previewVideo()
+                          : _previewImage();
                     default:
                       if (snapshot.hasError) {
                         return Text(
@@ -218,25 +232,30 @@ class _MyHomePageState extends State<MyHomePage> {
                   }
                 },
               )
-            : (isVideo ? _previewVideo() : _previewImage()),
+            : (mediaSource == RetrieveType.video
+                ? _previewVideo()
+                : _previewImage()),
       ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
-          FloatingActionButton(
-            onPressed: () {
-              isVideo = false;
-              _onImageButtonPressed(ImageSource.gallery, context: context);
-            },
-            heroTag: 'image0',
-            tooltip: 'Pick Image from gallery',
-            child: const Icon(Icons.photo_library),
+          Padding(
+            padding: const EdgeInsets.only(top: 0.0),
+            child: FloatingActionButton(
+              onPressed: () {
+                mediaSource = RetrieveType.image;
+                _onImageButtonPressed(ImageSource.gallery, context: context);
+              },
+              heroTag: 'image0',
+              tooltip: 'Pick Image from gallery',
+              child: const Icon(Icons.photo_library),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.only(top: 16.0),
             child: FloatingActionButton(
               onPressed: () {
-                isVideo = false;
+                mediaSource = RetrieveType.image;
                 _onImageButtonPressed(ImageSource.camera, context: context);
               },
               heroTag: 'image1',
@@ -249,7 +268,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: FloatingActionButton(
               backgroundColor: Colors.red,
               onPressed: () {
-                isVideo = true;
+                mediaSource = RetrieveType.video;
                 _onImageButtonPressed(ImageSource.gallery);
               },
               heroTag: 'video0',
@@ -262,7 +281,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: FloatingActionButton(
               backgroundColor: Colors.red,
               onPressed: () {
-                isVideo = true;
+                mediaSource = RetrieveType.video;
                 _onImageButtonPressed(ImageSource.camera);
               },
               heroTag: 'video1',

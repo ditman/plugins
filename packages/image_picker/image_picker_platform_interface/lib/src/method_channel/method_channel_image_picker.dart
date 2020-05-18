@@ -103,6 +103,37 @@ class MethodChannelImagePicker extends ImagePickerPlatform {
   }
 
   @override
+  Future<PickedFile> pickMedia({
+    ImageSource source,
+    RetrieveType type,
+    double imageMaxWidth,
+    double imageMaxHeight,
+    int imageQuality,
+    Duration videoMaxDuration,
+    CameraDevice preferredCameraDevice = CameraDevice.rear,
+  }) {
+    switch (type) {
+      case RetrieveType.image:
+        return pickImage(
+          source: source,
+          maxWidth: imageMaxWidth,
+          maxHeight: imageMaxHeight,
+          imageQuality: imageQuality,
+          preferredCameraDevice: preferredCameraDevice,
+        );
+        break;
+      case RetrieveType.video:
+        return pickVideo(
+          source: source,
+          maxDuration: videoMaxDuration,
+          preferredCameraDevice: preferredCameraDevice,
+        );
+        break;
+    }
+    return null;
+  }
+
+  @override
   Future<LostData> retrieveLostData() async {
     final Map<String, dynamic> result =
         await _channel.invokeMapMethod<String, dynamic>('retrieve');
