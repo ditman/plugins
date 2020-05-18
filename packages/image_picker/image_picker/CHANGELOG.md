@@ -1,3 +1,7 @@
+## 0.6.7
+
+* Utilize the new platform_interface package.
+
 ## 0.6.6+2
 
 * Update lower bound of dart dependency to 2.1.0.
