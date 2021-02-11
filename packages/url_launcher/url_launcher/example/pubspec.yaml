@@ -6,6 +6,8 @@ dependencies:
     sdk: flutter
   url_launcher:
     path: ../
+  url_launcher_web:
+    path: ../../url_launcher_web
 
 dev_dependencies:
   integration_test:
