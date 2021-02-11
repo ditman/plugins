@@ -4,21 +4,23 @@ description: Demonstrates how to use the url_launcher plugin.
 dependencies:
   flutter:
     sdk: flutter
-  url_launcher:
-    path: ../
+  url_launcher: ^5.7.10
+  #  path: ../
+  url_launcher_web: ^0.1.5+3
+  #  path: ../../url_launcher_web
 
 dev_dependencies:
   integration_test:
     path: ../../../integration_test
   flutter_driver:
     sdk: flutter
-  pedantic: ^1.10.0-nullsafety.1
+  pedantic: ^1.9.2
   mockito: ^4.1.1
-  plugin_platform_interface: ^1.1.0-nullsafety.1
+  plugin_platform_interface: ^1.0.3
 
 flutter:
   uses-material-design: true
 
 environment:
-  sdk: ">=2.12.0-0 <3.0.0"
+  sdk: ">=2.10.0-0 <3.0.0"
   flutter: ">=1.12.13+hotfix.5"

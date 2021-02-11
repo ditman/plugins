@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.9
+
 // ignore_for_file: public_member_api_docs
 
 import 'dart:async';
@@ -27,7 +29,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
+  MyHomePage({Key key, @required this.title}) : super(key: key);
   final String title;
 
   @override
@@ -35,7 +37,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Future<void>? _launched;
+  Future<void> _launched;
   String _phone = '';
 
   Future<void> _launchInBrowser(String url) async {
